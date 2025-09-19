@@ -4845,6 +4845,17 @@ static const FFlogo T[] = {
             FF_COLOR_FG_GREEN,
         },
     },
+    // TideLinux
+    {
+        .names = {"Tide Linux"},
+        .lines = FASTFETCH_DATATEXT_LOGO_TIDELINUX,
+        .colors = {
+            FF_COLOR_FG_256 "27",
+            FF_COLOR_FG_256 "39",
+            FF_COLOR_FG_BLUE,
+            FF_COLOR_FG_256 "12",
+        },
+    },
     // Torizon OS
     {
         .names = {"Torizon OS", "TorizonCore"},
