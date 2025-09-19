@@ -4852,9 +4852,9 @@ static const FFlogo T[] = {
         .colors = {
             FF_COLOR_FG_256 "27",
             FF_COLOR_FG_256 "39",
-            FF_COLOR_FG_BLUE,
-            FF_COLOR_FG_256 "12",
         },
+        .colorTitle = FF_COLOR_FG_BLUE,
+        .colorKeys = FF_COLOR_FG_MAGENTA,
     },
     // Torizon OS
     {
