@@ -63,6 +63,7 @@ bool ffPrintPackages(FFPackagesOptions* options)
         FF_PRINT_PACKAGE(emerge)
         FF_PRINT_PACKAGE(eopkg)
         FF_PRINT_PACKAGE(xbps)
+        FF_PRINT_PACKAGE(bpm)
         if (options->combined)
         {
             FF_PRINT_PACKAGE_ALL(nix);
@@ -161,6 +162,7 @@ bool ffPrintPackages(FFPackagesOptions* options)
             FF_FORMAT_ARG(counts.emerge, "emerge"),
             FF_FORMAT_ARG(counts.eopkg, "eopkg"),
             FF_FORMAT_ARG(counts.xbps, "xbps"),
+            FF_FORMAT_ARG(counts.bpm, "bpm"),
             FF_FORMAT_ARG(counts.nixSystem, "nix-system"),
             FF_FORMAT_ARG(counts.nixUser, "nix-user"),
             FF_FORMAT_ARG(counts.nixDefault, "nix-default"),
@@ -249,6 +251,7 @@ void ffParsePackagesJsonObject(FFPackagesOptions* options, yyjson_val* module)
                             FF_TEST_PACKAGE_NAME(AM)
                             break;
                         case 'B': if (false);
+                            FF_TEST_PACKAGE_NAME(BPM)
                             FF_TEST_PACKAGE_NAME(BREW)
                             break;
                         case 'C': if (false);
@@ -343,6 +346,7 @@ void ffGeneratePackagesJsonConfig(FFPackagesOptions* options, yyjson_mut_doc* do
     if (false);
     FF_TEST_PACKAGE_NAME(AM)
     FF_TEST_PACKAGE_NAME(APK)
+    FF_TEST_PACKAGE_NAME(BPM)
     FF_TEST_PACKAGE_NAME(BREW)
     FF_TEST_PACKAGE_NAME(CHOCO)
     FF_TEST_PACKAGE_NAME(DPKG)
@@ -399,6 +403,7 @@ bool ffGeneratePackagesJsonResult(FF_MAYBE_UNUSED FFPackagesOptions* options, yy
     FF_APPEND_PACKAGE_COUNT(amSystem)
     FF_APPEND_PACKAGE_COUNT(amUser)
     FF_APPEND_PACKAGE_COUNT(apk)
+    FF_APPEND_PACKAGE_COUNT(bpm)
     FF_APPEND_PACKAGE_COUNT(brew)
     FF_APPEND_PACKAGE_COUNT(brewCask)
     FF_APPEND_PACKAGE_COUNT(choco)
@@ -471,6 +476,7 @@ FFModuleBaseInfo ffPackagesModuleInfo = {
         {"Number of emerge packages", "emerge"},
         {"Number of eopkg packages", "eopkg"},
         {"Number of xbps packages", "xbps"},
+        {"Number of bpm packages", "bpm"},
         {"Number of nix-system packages", "nix-system"},
         {"Number of nix-user packages", "nix-user"},
         {"Number of nix-default packages", "nix-default"},

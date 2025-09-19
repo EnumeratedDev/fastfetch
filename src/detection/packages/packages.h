@@ -8,6 +8,7 @@ typedef struct FFPackagesResult
     uint32_t amSystem;
     uint32_t amUser;
     uint32_t apk;
+    uint32_t bpm;
     uint32_t brew;
     uint32_t brewCask;
     uint32_t choco;
