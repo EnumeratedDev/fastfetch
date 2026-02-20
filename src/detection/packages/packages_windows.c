@@ -1,14 +1,16 @@
 #include "packages.h"
 #include "common/processing.h"
-#include "util/stringUtils.h"
-#include "util/path.h"
-#include "util/windows/unicode.h"
-#include "util/mallocHelper.h"
-#include "common/io/io.h"
+#include "common/stringUtils.h"
+#include "common/path.h"
+#include "common/windows/unicode.h"
+#include "common/mallocHelper.h"
+#include "common/io.h"
 
-#include <Windows.h>
-#include "util/windows/nt.h"
+#include <stdalign.h>
+#include <windows.h>
+#include "common/windows/nt.h"
 #include <ntstatus.h>
+#include <shlobj.h>
 
 static uint32_t getNumElements(const char* searchPath, DWORD type, const wchar_t* ignore)
 {
@@ -17,8 +19,10 @@ static uint32_t getNumElements(const char* searchPath, DWORD type, const wchar_t
 
     bool flag = ignore == NULL;
     uint32_t counter = 0;
-    uint8_t buffer[64 * 1024] __attribute__((aligned(8))); // Required for WoA
+    alignas(8) uint8_t buffer[64 * 1024];
     BOOLEAN firstScan = TRUE;
+
+    size_t ignoreLen = ignore ? wcslen(ignore) : 0;
 
     while (true) {
         IO_STATUS_BLOCK ioStatus = {};
@@ -42,7 +46,9 @@ static uint32_t getNumElements(const char* searchPath, DWORD type, const wchar_t
         {
             if (!(entry->FileAttributes & type)) continue;
 
-            if (!flag && _wcsicmp(entry->FileName, ignore) == 0)
+            if (!flag &&
+                ignoreLen == entry->FileNameLength / sizeof(*entry->FileName) &&
+                _wcsnicmp(entry->FileName, ignore, ignoreLen) == 0)
             {
                 flag = true;
                 continue;
@@ -72,7 +78,7 @@ static inline void wrapYyjsonFree(yyjson_doc** doc)
 static void detectScoop(FFPackagesResult* result)
 {
     FF_STRBUF_AUTO_DESTROY scoopPath = ffStrbufCreateA(MAX_PATH + 3);
-    ffStrbufAppendS(&scoopPath, instance.state.platform.homeDir.chars);
+    ffStrbufAppend(&scoopPath, &instance.state.platform.homeDir);
     ffStrbufAppendS(&scoopPath, ".config/scoop/config.json");
 
     yyjson_val* root = NULL;
@@ -103,7 +109,12 @@ static void detectScoop(FFPackagesResult* result)
             ffStrbufSetJsonVal(&scoopPath, yyjson_obj_get(root, "global_path"));
         if (scoopPath.length == 0)
         {
-            ffStrbufSetS(&scoopPath, getenv("ProgramData"));
+            PWSTR pPath = NULL;
+            if (SUCCEEDED(SHGetKnownFolderPath(&FOLDERID_ProgramData, KF_FLAG_DEFAULT, NULL, &pPath)))
+            {
+                ffStrbufSetWS(&scoopPath, pPath);
+                CoTaskMemFree(pPath);
+            }
             ffStrbufAppendS(&scoopPath, "/scoop");
         }
         ffStrbufAppendS(&scoopPath, "/apps/");

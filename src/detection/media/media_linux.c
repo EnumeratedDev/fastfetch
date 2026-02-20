@@ -1,8 +1,8 @@
-#include "common/io/io.h"
 #include "fastfetch.h"
+#include "common/io.h"
+#include "common/stringUtils.h"
+#include "common/memrchr.h"
 #include "detection/media/media.h"
-#include "util/stringUtils.h"
-#include "util/unused.h"
 
 #include <string.h>
 

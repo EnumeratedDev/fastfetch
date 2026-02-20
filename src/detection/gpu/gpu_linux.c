@@ -2,12 +2,12 @@
 #include "detection/vulkan/vulkan.h"
 #include "detection/cpu/cpu.h"
 #include "detection/gpu/gpu_driver_specific.h"
-#include "common/io/io.h"
+#include "common/io.h"
 #include "common/library.h"
+#include "common/FFstrbuf.h"
+#include "common/stringUtils.h"
+#include "common/mallocHelper.h"
 #include "modules/gpu/option.h"
-#include "util/FFstrbuf.h"
-#include "util/stringUtils.h"
-#include "util/mallocHelper.h"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -560,7 +560,7 @@ static const char* detectOf(FFlist* gpus, FFstrbuf* buffer, FFstrbuf* drmDir, co
 
     if (!gpu->name.length)
     {
-        ffStrbufSetS(&gpu->name, name ? name : compatible);
+        ffStrbufSetS(&gpu->name, name ?: compatible);
         ffStrbufTrimRightSpace(&gpu->name);
     }
     if (!gpu->vendor.length && name)

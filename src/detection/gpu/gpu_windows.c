@@ -1,11 +1,11 @@
 #include "gpu.h"
-#include "common/library.h"
 #include "detection/gpu/gpu_driver_specific.h"
-#include "util/windows/unicode.h"
-#include "util/windows/registry.h"
-#include "util/mallocHelper.h"
-#include "util/debug.h"
-#include "util/windows/nt.h"
+#include "common/library.h"
+#include "common/windows/unicode.h"
+#include "common/windows/registry.h"
+#include "common/mallocHelper.h"
+#include "common/debug.h"
+#include "common/windows/nt.h"
 
 #include <cfgmgr32.h>
 
@@ -47,13 +47,17 @@ const char* ffDetectGPUImpl(FF_MAYBE_UNUSED const FFGPUOptions* options, FFlist*
 
         DEVINST devInst = 0;
 
+        if (CM_Locate_DevNodeW(&devInst, devId, CM_LOCATE_DEVNODE_NORMAL) != CR_SUCCESS)
         {
-            if (CM_Locate_DevNodeW(&devInst, devId, CM_LOCATE_DEVNODE_NORMAL) != CR_SUCCESS)
-            {
-                FF_DEBUG("Failed to get device instance ID or locate device node");
-                continue;
-            }
-            FF_DEBUG("Device instance ID: %lu", devInst);
+            FF_DEBUG("Failed to get device instance ID or locate device node");
+            continue;
+        }
+        FF_DEBUG("Device instance ID: %lu", devInst);
+
+        for (wchar_t* p = devId; *p; p++)
+        {
+            if (*p >= L'a' && *p <= L'z')
+                *p -= L'a' - L'A';
         }
 
         FFGPUResult* gpu = (FFGPUResult*)ffListAdd(gpus);
@@ -224,9 +228,9 @@ const char* ffDetectGPUImpl(FF_MAYBE_UNUSED const FFGPUOptions* options, FFlist*
             FF_DEBUG("Failed to open device node registry key");
         }
 
-        if (gpu->vendor.length == 0 || gpu->name.length == 0)
+        if (gpu->vendor.length == 0 || gpu->name.length == 0 || gpu->driver.length == 0 || gpu->dedicated.total == FF_GPU_VMEM_SIZE_UNSET)
         {
-            FF_DEBUG("Trying fallback registry method for vendor/name");
+            FF_DEBUG("Trying fallback registry method for vendor/name etc.");
             bufferLen = sizeof(buffer);
             if (CM_Get_DevNode_Registry_PropertyW(devInst, CM_DRP_DRIVER, NULL, buffer, &bufferLen, 0) == CR_SUCCESS &&
                 bufferLen == (FF_GUID_STRLEN + strlen("\\0000") + 1) * 2)
@@ -329,6 +333,10 @@ const char* ffDetectGPUImpl(FF_MAYBE_UNUSED const FFGPUOptions* options, FFlist*
         if (gpu->type == FF_GPU_TYPE_UNKNOWN && adapterLuid > 0)
         {
             FF_DEBUG("Trying to determine GPU type using D3DKMT APIs");
+            #if !FF_WIN7_COMPAT
+            D3DKMT_OPENADAPTERFROMLUID openAdapterFromLuid = { .AdapterLuid = *(LUID*)&adapterLuid };
+            if (NT_SUCCESS(D3DKMTOpenAdapterFromLuid(&openAdapterFromLuid)))
+            #else
             HMODULE hgdi32 = GetModuleHandleW(L"gdi32.dll");
             if (hgdi32)
             {
@@ -337,6 +345,7 @@ const char* ffDetectGPUImpl(FF_MAYBE_UNUSED const FFGPUOptions* options, FFlist*
                 {
                     D3DKMT_OPENADAPTERFROMLUID openAdapterFromLuid = { .AdapterLuid = *(LUID*)&adapterLuid };
                     if (NT_SUCCESS(ffD3DKMTOpenAdapterFromLuid(&openAdapterFromLuid)))
+            #endif
                     {
                         FF_DEBUG("Successfully opened adapter from LUID");
 
@@ -432,6 +441,7 @@ const char* ffDetectGPUImpl(FF_MAYBE_UNUSED const FFGPUOptions* options, FFlist*
                             FF_DEBUG("Failed to get GPU temperature or temperature is 0");
                         }
                     }
+            #if FF_WIN7_COMPAT
                 }
                 else
                 {
@@ -442,6 +452,7 @@ const char* ffDetectGPUImpl(FF_MAYBE_UNUSED const FFGPUOptions* options, FFlist*
             {
                 FF_DEBUG("Failed to get gdi32.dll module handle");
             }
+            #endif
         }
 
         if (gpu->type == FF_GPU_TYPE_UNKNOWN)

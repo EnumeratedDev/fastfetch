@@ -2,7 +2,7 @@
 #include "common/color.h"
 #include "common/jsonconfig.h"
 #include "common/percent.h"
-#include "util/stringUtils.h"
+#include "common/stringUtils.h"
 #include "options/display.h"
 
 #include <unistd.h>
@@ -909,8 +909,9 @@ void ffOptionsDestroyDisplay(FFOptionsDisplay* options)
     ffListDestroy(&options->constants);
 }
 
-void ffOptionsGenerateDisplayJsonConfig(FFOptionsDisplay* options, yyjson_mut_doc* doc)
+void ffOptionsGenerateDisplayJsonConfig(FFdata* data, FFOptionsDisplay* options)
 {
+    yyjson_mut_doc* doc = data->resultDoc;
     yyjson_mut_val* obj = yyjson_mut_obj_add_obj(doc, doc->root, "display");
 
     if (options->stat <= 0)
