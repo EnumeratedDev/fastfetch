@@ -148,6 +148,7 @@ bool ffPrintPackages(FFPackagesOptions* options)
         FF_PRINT_PACKAGE(mport)
         FF_PRINT_PACKAGE(pisi)
         FF_PRINT_PACKAGE(soar)
+        FF_PRINT_PACKAGE(moss)
 
         putchar('\n');
     }
@@ -198,6 +199,7 @@ bool ffPrintPackages(FFPackagesOptions* options)
             FF_FORMAT_ARG(counts.pisi, "pisi"),
             FF_FORMAT_ARG(counts.soar, "soar"),
             FF_FORMAT_ARG(counts.kiss, "kiss"),
+            FF_FORMAT_ARG(counts.moss, "moss"),
             FF_FORMAT_ARG(nixAll, "nix-all"),
             FF_FORMAT_ARG(flatpakAll, "flatpak-all"),
             FF_FORMAT_ARG(brewAll, "brew-all"),
@@ -284,6 +286,7 @@ void ffParsePackagesJsonObject(FFPackagesOptions* options, yyjson_val* module)
                         case 'M': if (false);
                             FF_TEST_PACKAGE_NAME(MACPORTS)
                             FF_TEST_PACKAGE_NAME(MPORT)
+                            FF_TEST_PACKAGE_NAME(MOSS)
                             break;
                         case 'N': if (false);
                             FF_TEST_PACKAGE_NAME(NIX)
@@ -361,6 +364,7 @@ void ffGeneratePackagesJsonConfig(FFPackagesOptions* options, yyjson_mut_doc* do
     FF_TEST_PACKAGE_NAME(LPKGBUILD)
     FF_TEST_PACKAGE_NAME(MACPORTS)
     FF_TEST_PACKAGE_NAME(MPORT)
+    FF_TEST_PACKAGE_NAME(MOSS)
     FF_TEST_PACKAGE_NAME(NIX)
     FF_TEST_PACKAGE_NAME(OPKG)
     FF_TEST_PACKAGE_NAME(PACMAN)
@@ -417,8 +421,11 @@ bool ffGeneratePackagesJsonResult(FF_MAYBE_UNUSED FFPackagesOptions* options, yy
     FF_APPEND_PACKAGE_COUNT(guixHome)
     FF_APPEND_PACKAGE_COUNT(hpkgSystem)
     FF_APPEND_PACKAGE_COUNT(hpkgUser)
+    FF_APPEND_PACKAGE_COUNT(kiss)
     FF_APPEND_PACKAGE_COUNT(linglong)
+    FF_APPEND_PACKAGE_COUNT(macports)
     FF_APPEND_PACKAGE_COUNT(mport)
+    FF_APPEND_PACKAGE_COUNT(moss)
     FF_APPEND_PACKAGE_COUNT(nixDefault)
     FF_APPEND_PACKAGE_COUNT(nixSystem)
     FF_APPEND_PACKAGE_COUNT(nixUser)
@@ -430,13 +437,11 @@ bool ffGeneratePackagesJsonResult(FF_MAYBE_UNUSED FFPackagesOptions* options, yy
     FF_APPEND_PACKAGE_COUNT(pkg)
     FF_APPEND_PACKAGE_COUNT(pkgtool)
     FF_APPEND_PACKAGE_COUNT(pkgsrc)
-    FF_APPEND_PACKAGE_COUNT(macports)
     FF_APPEND_PACKAGE_COUNT(rpm)
     FF_APPEND_PACKAGE_COUNT(scoopUser)
     FF_APPEND_PACKAGE_COUNT(scoopGlobal)
     FF_APPEND_PACKAGE_COUNT(snap)
     FF_APPEND_PACKAGE_COUNT(soar)
-    FF_APPEND_PACKAGE_COUNT(kiss)
     FF_APPEND_PACKAGE_COUNT(sorcery)
     FF_APPEND_PACKAGE_COUNT(winget)
     FF_APPEND_PACKAGE_COUNT(xbps)
@@ -512,6 +517,7 @@ FFModuleBaseInfo ffPackagesModuleInfo = {
         {"Number of pisi packages", "pisi"},
         {"Number of soar packages", "soar"},
         {"Number of kiss packages", "kiss"},
+        {"Number of moss packages", "moss"},
         {"Total number of all nix packages", "nix-all"},
         {"Total number of all flatpak app packages", "flatpak-all"},
         {"Total number of all brew packages", "brew-all"},

@@ -208,10 +208,6 @@ static const char* detectWine(void)
 
 static void getSystemReleaseAndVersion(FFPlatformSysinfo* info)
 {
-    RTL_OSVERSIONINFOW osVersion = { .dwOSVersionInfoSize = sizeof(osVersion) };
-    if (!NT_SUCCESS(RtlGetVersion(&osVersion)))
-        return;
-
     FF_HKEY_AUTO_DESTROY hKey = NULL;
     if(!ffRegOpenKeyForRead(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", &hKey, NULL))
         return;
@@ -221,9 +217,9 @@ static void getSystemReleaseAndVersion(FFPlatformSysinfo* info)
 
     ffStrbufAppendF(&info->release,
         "%u.%u.%u.%u",
-        (unsigned) osVersion.dwMajorVersion,
-        (unsigned) osVersion.dwMinorVersion,
-        (unsigned) osVersion.dwBuildNumber,
+        (unsigned) SharedUserData->NtMajorVersion,
+        (unsigned) SharedUserData->NtMinorVersion,
+        (unsigned) SharedUserData->NtBuildNumber,
         (unsigned) ubr);
 
     ffRegReadStrbuf(hKey, L"BuildLabEx", &info->version, NULL);
@@ -232,20 +228,7 @@ static void getSystemReleaseAndVersion(FFPlatformSysinfo* info)
     if (wineVersion)
         ffStrbufSetF(&info->name, "Wine_%s", wineVersion);
     else
-    {
-        switch (osVersion.dwPlatformId)
-        {
-        case VER_PLATFORM_WIN32s:
-            ffStrbufSetStatic(&info->name, "WIN32s");
-            break;
-        case VER_PLATFORM_WIN32_WINDOWS:
-            ffStrbufSetStatic(&info->name, "WIN32_WINDOWS");
-            break;
-        case VER_PLATFORM_WIN32_NT:
-            ffStrbufSetStatic(&info->name, "WIN32_NT");
-            break;
-        }
-    }
+        ffStrbufSetStatic(&info->name, "WIN32_NT");
 }
 
 static void getSystemPageSize(FFPlatformSysinfo* info)
@@ -313,10 +296,24 @@ static void getSystemArchitecture(FFPlatformSysinfo* info)
     }
 }
 
+static void getCwd(FFPlatform* platform)
+{
+    #if _WIN64
+    static_assert(
+        offsetof(RTL_USER_PROCESS_PARAMETERS, Reserved2[5]) == 0x38,
+        "CurrentDirectory should be at offset 0x38 in RTL_USER_PROCESS_PARAMETERS. Structure layout mismatch detected.");
+    #endif
+    PCURDIR cwd = (PCURDIR) &NtCurrentTeb()->ProcessEnvironmentBlock->ProcessParameters->Reserved2[5];
+    ffStrbufSetNWS(&platform->cwd, cwd->DosPath.Length / sizeof(WCHAR), cwd->DosPath.Buffer);
+    ffStrbufReplaceAllC(&platform->cwd, '\\', '/');
+    ffStrbufEnsureEndsWithC(&platform->cwd, '/');
+}
+
 void ffPlatformInitImpl(FFPlatform* platform)
 {
     platform->pid = (uint32_t) GetCurrentProcessId();
     getExePath(platform);
+    getCwd(platform);
     getHomeDir(platform);
     getCacheDir(platform);
     getConfigDirs(platform);
