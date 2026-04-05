@@ -3,21 +3,21 @@
 
 #include <stdlib.h>
 
-//https://learn.microsoft.com/en-us/windows/win32/wmisdk/example--getting-wmi-data-from-the-local-computer
-//https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/computer-system-hardware-classes
-static void CoUninitializeWrap(void)
-{
+// https://learn.microsoft.com/en-us/windows/win32/wmisdk/example--getting-wmi-data-from-the-local-computer
+// https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/computer-system-hardware-classes
+static void CoUninitializeWrap(void) {
     CoUninitialize();
 }
 
-static const char* doInitCom()
-{
+static const char* doInitCom() {
     // Initialize COM
-    if (FAILED(CoInitializeEx(NULL, COINIT_MULTITHREADED)))
+    if (FAILED(CoInitializeEx(NULL, COINIT_MULTITHREADED))) {
         return "CoInitializeEx() failed";
+    }
 
     // Set general COM security levels
-    if (FAILED(CoInitializeSecurity(
+
+    HRESULT hRes = CoInitializeSecurity(
         NULL,
         -1,                          // COM authentication
         NULL,                        // Authentication services
@@ -27,8 +27,9 @@ static const char* doInitCom()
         NULL,                        // Authentication info
         EOAC_NONE,                   // Additional capabilities
         NULL                         // Reserved
-    )))
-    {
+    );
+
+    if (FAILED(hRes) && hRes != RPC_E_TOO_LATE /* Has been set by a random dll */) {
         CoUninitialize();
         return "CoInitializeSecurity() failed";
     }
@@ -37,10 +38,10 @@ static const char* doInitCom()
     return NULL;
 }
 
-const char* ffInitCom(void)
-{
+const char* ffInitCom(void) {
     static const char* error = "";
-    if (error && error[0] == '\0')
+    if (error && error[0] == '\0') {
         error = doInitCom();
+    }
     return error;
 }
