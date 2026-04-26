@@ -15,8 +15,11 @@
 static const char* detectWithCmApi(FFBatteryOptions* options, FFlist* results) {
     // https://learn.microsoft.com/en-us/windows-hardware/drivers/install/using-device-interfaces
     ULONG cchDeviceInterfaces = 0;
-    CONFIGRET cr = CM_Get_Device_Interface_List_SizeW(&cchDeviceInterfaces, (LPGUID) &GUID_DEVCLASS_BATTERY, NULL, CM_GET_DEVICE_INTERFACE_LIST_PRESENT);
-    if (cr != CR_SUCCESS) {
+    if (CM_Get_Device_Interface_List_SizeW(
+            &cchDeviceInterfaces,
+            (LPGUID) &GUID_DEVCLASS_BATTERY,
+            NULL,
+            CM_GET_DEVICE_INTERFACE_LIST_PRESENT) != CR_SUCCESS) {
         return "CM_Get_Device_Interface_List_SizeW() failed";
     }
 
@@ -25,14 +28,18 @@ static const char* detectWithCmApi(FFBatteryOptions* options, FFlist* results) {
     }
 
     wchar_t* FF_AUTO_FREE mszDeviceInterfaces = (wchar_t*) malloc(cchDeviceInterfaces * sizeof(wchar_t));
-    cr = CM_Get_Device_Interface_ListW((LPGUID) &GUID_DEVCLASS_BATTERY, NULL, mszDeviceInterfaces, cchDeviceInterfaces, CM_GET_DEVICE_INTERFACE_LIST_PRESENT);
-    if (cr != CR_SUCCESS) {
+    if (CM_Get_Device_Interface_ListW(
+            (LPGUID) &GUID_DEVCLASS_BATTERY,
+            NULL,
+            mszDeviceInterfaces,
+            cchDeviceInterfaces,
+            CM_GET_DEVICE_INTERFACE_LIST_PRESENT) != CR_SUCCESS) {
         return "CM_Get_Device_Interface_ListW() failed";
     }
 
-    for (const wchar_t* pDeviceInterface = mszDeviceInterfaces; *pDeviceInterface; pDeviceInterface += wcslen(pDeviceInterface) + 1) {
+    for (const wchar_t* p = mszDeviceInterfaces; *p; p += wcslen(p) + 1) {
         HANDLE FF_AUTO_CLOSE_FD hBattery =
-            CreateFileW(pDeviceInterface, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+            CreateFileW(p, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
         if (hBattery == INVALID_HANDLE_VALUE) {
             continue;
@@ -56,7 +63,7 @@ static const char* detectWithCmApi(FFBatteryOptions* options, FFlist* results) {
             continue;
         }
 
-        FFBatteryResult* battery = (FFBatteryResult*) ffListAdd(results);
+        FFBatteryResult* battery = FF_LIST_ADD(FFBatteryResult, *results);
 
         if (memcmp(bi.Chemistry, "PbAc", 4) == 0) {
             ffStrbufInitStatic(&battery->technology, "Lead Acid");
@@ -134,25 +141,24 @@ static const char* detectWithCmApi(FFBatteryOptions* options, FFlist* results) {
             BATTERY_WAIT_STATUS bws = { .BatteryTag = bqi.BatteryTag };
             if (DeviceIoControl(hBattery, IOCTL_BATTERY_QUERY_STATUS, &bws, sizeof(bws), &bs, sizeof(bs), &dwOut, NULL) && bs.Capacity != BATTERY_UNKNOWN_CAPACITY && bi.FullChargedCapacity != 0) {
                 battery->capacity = bs.Capacity * 100.0 / bi.FullChargedCapacity;
+
+                battery->status = FF_BATTERY_STATUS_NONE;
+                if (bs.PowerState & BATTERY_POWER_ON_LINE) {
+                    battery->status |= FF_BATTERY_STATUS_AC_CONNECTED;
+                }
+                if (bs.PowerState & BATTERY_DISCHARGING) {
+                    battery->status |= FF_BATTERY_STATUS_DISCHARGING;
+                }
+                if (bs.PowerState & BATTERY_CHARGING) {
+                    battery->status |= FF_BATTERY_STATUS_CHARGING;
+                }
+                if (bs.PowerState & BATTERY_CRITICAL) {
+                    battery->status |= FF_BATTERY_STATUS_CRITICAL;
+                }
             } else {
+                battery->status = FF_BATTERY_STATUS_UNKNOWN;
                 battery->capacity = 0;
             }
-
-            ffStrbufInit(&battery->status);
-            if (bs.PowerState & BATTERY_POWER_ON_LINE) {
-                ffStrbufAppendS(&battery->status, "AC Connected, ");
-            }
-            if (bs.PowerState & BATTERY_DISCHARGING) {
-                ffStrbufAppendS(&battery->status, "Discharging, ");
-            }
-            if (bs.PowerState & BATTERY_CHARGING) {
-                ffStrbufAppendS(&battery->status, "Charging, ");
-            }
-            if (bs.PowerState & BATTERY_CRITICAL) {
-                ffStrbufAppendS(&battery->status, "Critical, ");
-            }
-            ffStrbufTrimRight(&battery->status, ' ');
-            ffStrbufTrimRight(&battery->status, ',');
         }
     }
     return NULL;
@@ -179,7 +185,7 @@ typedef struct FFSmbiosPortableBattery {
     uint8_t SbdsDeviceChemistry;      // string
     uint8_t DesignCapacityMultiplier; // varies
     uint16_t OEMSpecific;             // varies
-} __attribute__((__packed__)) FFSmbiosPortableBattery;
+} FF_A_PACKED FFSmbiosPortableBattery;
 
 static_assert(offsetof(FFSmbiosPortableBattery, OEMSpecific) == 0x16,
     "FFSmbiosPortableBattery: Wrong struct alignment");
@@ -249,28 +255,33 @@ static const char* detectBySmbios(FFBatteryResult* battery) {
     return NULL;
 }
 
-static const char* detectWithNtApi(FF_MAYBE_UNUSED FFBatteryOptions* options, FFlist* results) {
+static const char* detectWithNtApi(FF_A_UNUSED FFBatteryOptions* options, FFlist* results) {
     SYSTEM_BATTERY_STATE info;
-    if (NT_SUCCESS(NtPowerInformation(SystemBatteryState, NULL, 0, &info, sizeof(info))) && info.BatteryPresent) {
-        FFBatteryResult* battery = (FFBatteryResult*) ffListAdd(results);
+    if (NT_SUCCESS(NtPowerInformation(SystemBatteryState, NULL, 0, &info, sizeof(info))) &&
+        info.BatteryPresent) {
+        FFBatteryResult* battery = FF_LIST_ADD(FFBatteryResult, *results);
         ffStrbufInit(&battery->modelName);
         ffStrbufInit(&battery->manufacturer);
         ffStrbufInit(&battery->manufactureDate);
         ffStrbufInit(&battery->technology);
-        ffStrbufInit(&battery->status);
         ffStrbufInit(&battery->serial);
         battery->temperature = FF_BATTERY_TEMP_UNSET;
         battery->cycleCount = 0;
         battery->timeRemaining = info.EstimatedTime == BATTERY_UNKNOWN_TIME ? -1 : (int32_t) info.EstimatedTime;
+        battery->status = FF_BATTERY_STATUS_NONE;
 
         battery->capacity = info.RemainingCapacity * 100.0 / info.MaxCapacity;
         if (info.AcOnLine) {
-            ffStrbufAppendS(&battery->status, "AC Connected");
-            if (info.Charging) {
-                ffStrbufAppendS(&battery->status, ", Charging");
-            }
-        } else if (info.Discharging) {
-            ffStrbufAppendS(&battery->status, "Discharging");
+            battery->status |= FF_BATTERY_STATUS_AC_CONNECTED;
+        }
+        if (info.Charging) {
+            battery->status |= FF_BATTERY_STATUS_CHARGING;
+        }
+        if (info.Discharging) {
+            battery->status |= FF_BATTERY_STATUS_DISCHARGING;
+        }
+        if (info.DefaultAlert1 > 0 && info.RemainingCapacity <= info.DefaultAlert1) {
+            battery->status |= FF_BATTERY_STATUS_CRITICAL;
         }
 
         detectBySmbios(battery);

@@ -58,7 +58,7 @@ void ffGenerateTerminalFontJsonConfig(FFTerminalFontOptions* options, yyjson_mut
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 }
 
-bool ffGenerateTerminalFontJsonResult(FF_MAYBE_UNUSED FFTerminalFontOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateTerminalFontJsonResult(FF_A_UNUSED FFTerminalFontOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     bool success = false;
     FFTerminalFontResult result;
     ffFontInit(&result.font);
@@ -106,7 +106,7 @@ void ffDestroyTerminalFontOptions(FFTerminalFontOptions* options) {
 
 FFModuleBaseInfo ffTerminalFontModuleInfo = {
     .name = FF_TERMINALFONT_MODULE_NAME,
-    .description = "Print font name and size used by current terminal",
+    .description = "Print the font name and size used by the current terminal",
     .initOptions = (void*) ffInitTerminalFontOptions,
     .destroyOptions = (void*) ffDestroyTerminalFontOptions,
     .parseJsonObject = (void*) ffParseTerminalFontJsonObject,

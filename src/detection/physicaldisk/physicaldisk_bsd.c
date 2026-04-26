@@ -2,14 +2,14 @@
 
 #if __has_include(<libgeom.h>)
 
-#    include "common/stringUtils.h"
+    #include "common/stringUtils.h"
 
-#    include <devstat.h>
-#    include <memory.h>
-#    include <fcntl.h>
-#    include <sys/ioctl.h>
-#    include <sys/disk.h>
-#    include <libgeom.h>
+    #include <devstat.h>
+    #include <memory.h>
+    #include <fcntl.h>
+    #include <sys/ioctl.h>
+    #include <sys/disk.h>
+    #include <libgeom.h>
 
 const char* ffDetectPhysicalDisk(FFlist* result, FFPhysicalDiskOptions* options) {
     struct gmesh geomTree;
@@ -41,11 +41,19 @@ const char* ffDetectPhysicalDisk(FFlist* result, FFPhysicalDiskOptions* options)
 
         FFPhysicalDiskType type = FF_PHYSICALDISK_TYPE_NONE;
         if (!ffStrEquals(provider->lg_geom->lg_class->lg_name, "DISK")) {
+            if (options->hideType & FF_PHYSICALDISK_TYPE_VIRTUAL) {
+                continue;
+            }
+
             type |= FF_PHYSICALDISK_TYPE_VIRTUAL;
         }
         uint64_t size = (uint64_t) provider->lg_mediasize;
         if (size == 0) {
-            type |= FF_PHYSICALDISK_TYPE_UNKNOWN;
+            if (options->hideType & FF_PHYSICALDISK_TYPE_UNUSED) {
+                continue;
+            }
+
+            type |= FF_PHYSICALDISK_TYPE_UNUSED;
         }
 
         FF_STRBUF_AUTO_DESTROY name = ffStrbufCreateS(provider->lg_name);
@@ -70,7 +78,7 @@ const char* ffDetectPhysicalDisk(FFlist* result, FFPhysicalDiskOptions* options)
             continue;
         }
 
-        FFPhysicalDiskResult* device = (FFPhysicalDiskResult*) ffListAdd(result);
+        FFPhysicalDiskResult* device = FF_LIST_ADD(FFPhysicalDiskResult, *result);
         ffStrbufInitF(&device->devPath, "/dev/%s", provider->lg_name);
         ffStrbufInitMove(&device->serial, &identifier);
         ffStrbufTrimSpace(&device->serial);

@@ -6,7 +6,7 @@
 #include "modules/brightness/brightness.h"
 
 bool ffPrintBrightness(FFBrightnessOptions* options) {
-    FF_LIST_AUTO_DESTROY result = ffListCreate(sizeof(FFBrightnessResult));
+    FF_LIST_AUTO_DESTROY result = ffListCreate();
 
     const char* error = ffDetectBrightness(options, &result);
 
@@ -140,8 +140,8 @@ void ffGenerateBrightnessJsonConfig(FFBrightnessOptions* options, yyjson_mut_doc
     yyjson_mut_obj_add_bool(doc, module, "compact", options->compact);
 }
 
-bool ffGenerateBrightnessJsonResult(FF_MAYBE_UNUSED FFBrightnessOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
-    FF_LIST_AUTO_DESTROY result = ffListCreate(sizeof(FFBrightnessResult));
+bool ffGenerateBrightnessJsonResult(FF_A_UNUSED FFBrightnessOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+    FF_LIST_AUTO_DESTROY result = ffListCreate();
 
     const char* error = ffDetectBrightness(options, &result);
 
@@ -183,7 +183,7 @@ void ffDestroyBrightnessOptions(FFBrightnessOptions* options) {
 
 FFModuleBaseInfo ffBrightnessModuleInfo = {
     .name = FF_BRIGHTNESS_MODULE_NAME,
-    .description = "Print current brightness level of your monitors",
+    .description = "Print the current brightness level of your monitors",
     .initOptions = (void*) ffInitBrightnessOptions,
     .destroyOptions = (void*) ffDestroyBrightnessOptions,
     .parseJsonObject = (void*) ffParseBrightnessJsonObject,

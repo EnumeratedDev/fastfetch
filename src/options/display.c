@@ -474,7 +474,8 @@ const char* ffOptionsParseDisplayJsonConfig(FFOptionsDisplay* options, yyjson_va
             yyjson_val* item;
             size_t idx, max;
             yyjson_arr_foreach (val, idx, max, item) {
-                ffStrbufInitJsonVal(ffListAdd(&options->constants), item);
+                FFstrbuf* buffer = FF_LIST_ADD(FFstrbuf, options->constants);
+                ffStrbufInitJsonVal(buffer, item);
             }
         } else if (unsafe_yyjson_equals_str(key, "freq")) {
             if (!yyjson_is_obj(val)) {
@@ -510,6 +511,45 @@ const char* ffOptionsParseDisplayJsonConfig(FFOptionsDisplay* options, yyjson_va
                     return error;
                 }
                 options->freqSpaceBeforeUnit = (FFSpaceBeforeUnitType) value;
+            }
+        } else if (unsafe_yyjson_equals_str(key, "common")) {
+            if (!yyjson_is_obj(val)) {
+                return "display.common must be an object";
+            }
+
+            yyjson_val* ndigits = yyjson_obj_get(val, "ndigits");
+            if (ndigits) {
+                if (!yyjson_is_uint(ndigits)) {
+                    return "display.common.ndigits must be an unsigned integer";
+                }
+                uint64_t val = yyjson_get_uint(ndigits);
+                if (val > 9) {
+                    return "display.common.ndigits must be between 0 and 9";
+                }
+                options->fractionNdigits = (int8_t) val;
+                options->freqNdigits = (int8_t) val;
+                options->percentNdigits = (uint8_t) val;
+                options->sizeNdigits = (uint8_t) val;
+                options->tempNdigits = (uint8_t) val;
+            }
+
+            yyjson_val* spaceBeforeUnit = yyjson_obj_get(val, "spaceBeforeUnit");
+            if (spaceBeforeUnit) {
+                int value;
+                const char* error = ffJsonConfigParseEnum(spaceBeforeUnit, &value, (FFKeyValuePair[]) {
+                                                                                       { "default", FF_SPACE_BEFORE_UNIT_DEFAULT },
+                                                                                       { "always", FF_SPACE_BEFORE_UNIT_ALWAYS },
+                                                                                       { "never", FF_SPACE_BEFORE_UNIT_NEVER },
+                                                                                       {},
+                                                                                   });
+                if (error) {
+                    return error;
+                }
+                options->durationSpaceBeforeUnit = (FFSpaceBeforeUnitType) value;
+                options->freqSpaceBeforeUnit = (FFSpaceBeforeUnitType) value;
+                options->percentSpaceBeforeUnit = (FFSpaceBeforeUnitType) value;
+                options->sizeSpaceBeforeUnit = (FFSpaceBeforeUnitType) value;
+                options->tempSpaceBeforeUnit = (FFSpaceBeforeUnitType) value;
             }
         } else {
             return "Unknown display property";
@@ -801,7 +841,7 @@ void ffOptionsInitDisplay(FFOptionsDisplay* options) {
 
     options->durationAbbreviation = false;
     options->durationSpaceBeforeUnit = FF_SPACE_BEFORE_UNIT_DEFAULT;
-    options->percentType = 9;
+    options->percentType = FF_PERCENTAGE_TYPE_NUM_BIT | FF_PERCENTAGE_TYPE_NUM_COLOR_BIT;
     options->percentNdigits = 0;
     ffStrbufInitStatic(&options->percentColorGreen, FF_COLOR_FG_GREEN);
     ffStrbufInitStatic(&options->percentColorYellow, instance.state.terminalLightTheme ? FF_COLOR_FG_YELLOW : FF_COLOR_FG_LIGHT_YELLOW);
@@ -814,7 +854,7 @@ void ffOptionsInitDisplay(FFOptionsDisplay* options) {
     options->fractionNdigits = 2;
     options->fractionTrailingZeros = FF_FRACTION_TRAILING_ZEROS_TYPE_DEFAULT;
 
-    ffListInit(&options->constants, sizeof(FFstrbuf));
+    ffListInit(&options->constants);
 }
 
 void ffOptionsDestroyDisplay(FFOptionsDisplay* options) {
@@ -922,13 +962,13 @@ void ffOptionsGenerateDisplayJsonConfig(FFdata* data, FFOptionsDisplay* options)
                 yyjson_mut_obj_add_str(doc, temperature, "unit", "D");
                 break;
             case FF_TEMPERATURE_UNIT_CELSIUS:
-                yyjson_mut_obj_add_str(doc, obj, "unit", "C");
+                yyjson_mut_obj_add_str(doc, temperature, "unit", "C");
                 break;
             case FF_TEMPERATURE_UNIT_FAHRENHEIT:
-                yyjson_mut_obj_add_str(doc, obj, "unit", "F");
+                yyjson_mut_obj_add_str(doc, temperature, "unit", "F");
                 break;
             case FF_TEMPERATURE_UNIT_KELVIN:
-                yyjson_mut_obj_add_str(doc, obj, "unit", "K");
+                yyjson_mut_obj_add_str(doc, temperature, "unit", "K");
                 break;
         }
         yyjson_mut_obj_add_uint(doc, temperature, "ndigits", options->tempNdigits);
@@ -959,7 +999,7 @@ void ffOptionsGenerateDisplayJsonConfig(FFdata* data, FFOptionsDisplay* options)
                 yyjson_mut_arr_add_str(doc, type, "num");
             }
             if (options->percentType & FF_PERCENTAGE_TYPE_BAR_BIT) {
-                yyjson_mut_arr_add_str(doc, type, "var");
+                yyjson_mut_arr_add_str(doc, type, "bar");
             }
             if (options->percentType & FF_PERCENTAGE_TYPE_HIDE_OTHERS_BIT) {
                 yyjson_mut_arr_add_str(doc, type, "hide-others");
@@ -1021,6 +1061,18 @@ void ffOptionsGenerateDisplayJsonConfig(FFdata* data, FFOptionsDisplay* options)
         } else {
             yyjson_mut_obj_add_uint(doc, fraction, "ndigits", (uint8_t) options->fractionNdigits);
         }
+
+        switch (options->fractionTrailingZeros) {
+            case FF_FRACTION_TRAILING_ZEROS_TYPE_DEFAULT:
+                yyjson_mut_obj_add_str(doc, fraction, "trailingZeros", "default");
+                break;
+            case FF_FRACTION_TRAILING_ZEROS_TYPE_ALWAYS:
+                yyjson_mut_obj_add_str(doc, fraction, "trailingZeros", "always");
+                break;
+            case FF_FRACTION_TRAILING_ZEROS_TYPE_NEVER:
+                yyjson_mut_obj_add_str(doc, fraction, "trailingZeros", "never");
+                break;
+        }
     }
 
     yyjson_mut_obj_add_bool(doc, obj, "noBuffer", options->noBuffer);
@@ -1038,8 +1090,20 @@ void ffOptionsGenerateDisplayJsonConfig(FFdata* data, FFOptionsDisplay* options)
             case FF_MODULE_KEY_TYPE_ICON:
                 yyjson_mut_obj_add_str(doc, key, "type", "icon");
                 break;
-            case FF_MODULE_KEY_TYPE_BOTH:
+            case FF_MODULE_KEY_TYPE_BOTH_0:
+                yyjson_mut_obj_add_str(doc, key, "type", "both-0");
+                break;
+            case FF_MODULE_KEY_TYPE_BOTH_1: // alias: both
                 yyjson_mut_obj_add_str(doc, key, "type", "both");
+                break;
+            case FF_MODULE_KEY_TYPE_BOTH_2:
+                yyjson_mut_obj_add_str(doc, key, "type", "both-2");
+                break;
+            case FF_MODULE_KEY_TYPE_BOTH_3:
+                yyjson_mut_obj_add_str(doc, key, "type", "both-3");
+                break;
+            case FF_MODULE_KEY_TYPE_BOTH_4:
+                yyjson_mut_obj_add_str(doc, key, "type", "both-4");
                 break;
         }
 
@@ -1049,7 +1113,7 @@ void ffOptionsGenerateDisplayJsonConfig(FFdata* data, FFOptionsDisplay* options)
     {
         yyjson_mut_val* freq = yyjson_mut_obj_add_obj(doc, obj, "freq");
         yyjson_mut_obj_add_int(doc, freq, "ndigits", options->freqNdigits);
-        switch (options->percentSpaceBeforeUnit) {
+        switch (options->freqSpaceBeforeUnit) {
             case FF_SPACE_BEFORE_UNIT_DEFAULT:
                 yyjson_mut_obj_add_str(doc, freq, "spaceBeforeUnit", "default");
                 break;

@@ -2,7 +2,6 @@
 #include "common/jsonconfig.h"
 #include "common/temps.h"
 #include "common/size.h"
-#include "common/stringUtils.h"
 #include "detection/physicaldisk/physicaldisk.h"
 #include "modules/physicaldisk/physicaldisk.h"
 
@@ -27,7 +26,7 @@ static void formatKey(const FFPhysicalDiskOptions* options, FFPhysicalDiskResult
 }
 
 bool ffPrintPhysicalDisk(FFPhysicalDiskOptions* options) {
-    FF_LIST_AUTO_DESTROY result = ffListCreate(sizeof(FFPhysicalDiskResult));
+    FF_LIST_AUTO_DESTROY result = ffListCreate();
     const char* error = ffDetectPhysicalDisk(&result, options);
 
     if (error) {
@@ -35,7 +34,7 @@ bool ffPrintPhysicalDisk(FFPhysicalDiskOptions* options) {
         return false;
     }
 
-    ffListSort(&result, (const void*) sortDevices);
+    ffListSort(&result, sizeof(FFPhysicalDiskResult), (const void*) sortDevices);
 
     uint32_t index = 0;
     FF_STRBUF_AUTO_DESTROY key = ffStrbufCreate();
@@ -139,6 +138,32 @@ void ffParsePhysicalDiskJsonObject(FFPhysicalDiskOptions* options, yyjson_val* m
             continue;
         }
 
+        if (unsafe_yyjson_equals_str(key, "hideVirtual")) {
+            if (!yyjson_is_bool(val)) {
+                ffPrintError(FF_PHYSICALDISK_MODULE_NAME, 0, &options->moduleArgs, FF_PRINT_TYPE_DEFAULT, "hideVirtual must be a boolean");
+            } else {
+                if (unsafe_yyjson_is_true(val)) {
+                    options->hideType |= FF_PHYSICALDISK_TYPE_VIRTUAL;
+                } else {
+                    options->hideType &= ~FF_PHYSICALDISK_TYPE_VIRTUAL;
+                }
+            }
+            continue;
+        }
+
+        if (unsafe_yyjson_equals_str(key, "hideUnused")) {
+            if (!yyjson_is_bool(val)) {
+                ffPrintError(FF_PHYSICALDISK_MODULE_NAME, 0, &options->moduleArgs, FF_PRINT_TYPE_DEFAULT, "hideUnused must be a boolean");
+            } else {
+                if (unsafe_yyjson_is_true(val)) {
+                    options->hideType |= FF_PHYSICALDISK_TYPE_UNUSED;
+                } else {
+                    options->hideType &= ~FF_PHYSICALDISK_TYPE_UNUSED;
+                }
+            }
+            continue;
+        }
+
         if (ffTempsParseJsonObject(key, val, &options->temp, &options->tempConfig)) {
             continue;
         }
@@ -153,10 +178,13 @@ void ffGeneratePhysicalDiskJsonConfig(FFPhysicalDiskOptions* options, yyjson_mut
     yyjson_mut_obj_add_strbuf(doc, module, "namePrefix", &options->namePrefix);
 
     ffTempsGenerateJsonConfig(doc, module, options->temp, options->tempConfig);
+
+    yyjson_mut_obj_add_bool(doc, module, "hideVirtual", !!(options->hideType & FF_PHYSICALDISK_TYPE_VIRTUAL));
+    yyjson_mut_obj_add_bool(doc, module, "hideUnused", !!(options->hideType & FF_PHYSICALDISK_TYPE_UNUSED));
 }
 
 bool ffGeneratePhysicalDiskJsonResult(FFPhysicalDiskOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
-    FF_LIST_AUTO_DESTROY result = ffListCreate(sizeof(FFPhysicalDiskResult));
+    FF_LIST_AUTO_DESTROY result = ffListCreate();
     const char* error = ffDetectPhysicalDisk(&result, options);
 
     if (error) {
@@ -200,7 +228,7 @@ bool ffGeneratePhysicalDiskJsonResult(FFPhysicalDiskOptions* options, yyjson_mut
             yyjson_mut_obj_add_null(doc, obj, "readOnly");
         }
 
-        yyjson_mut_obj_add_bool(doc, obj, "unknown", !!(dev->type & FF_PHYSICALDISK_TYPE_UNKNOWN));
+        yyjson_mut_obj_add_bool(doc, obj, "unknown", !!(dev->type & FF_PHYSICALDISK_TYPE_UNUSED));
 
         yyjson_mut_obj_add_strbuf(doc, obj, "revision", &dev->revision);
 
@@ -228,6 +256,7 @@ void ffInitPhysicalDiskOptions(FFPhysicalDiskOptions* options) {
     ffStrbufInit(&options->namePrefix);
     options->temp = false;
     options->tempConfig = (FFColorRangeConfig) { 50, 70 };
+    options->hideType = FF_PHYSICALDISK_TYPE_UNUSED;
 }
 
 void ffDestroyPhysicalDiskOptions(FFPhysicalDiskOptions* options) {

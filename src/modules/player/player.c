@@ -95,7 +95,7 @@ void ffGeneratePlayerJsonConfig(FFPlayerOptions* options, yyjson_mut_doc* doc, y
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 }
 
-bool ffGeneratePlayerJsonResult(FF_MAYBE_UNUSED FFMediaOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGeneratePlayerJsonResult(FF_A_UNUSED FFMediaOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     yyjson_mut_obj_add_str(doc, module, "error", "Player module is an alias of Media module");
     return false;
 }
@@ -110,7 +110,7 @@ void ffDestroyPlayerOptions(FFPlayerOptions* options) {
 
 FFModuleBaseInfo ffPlayerModuleInfo = {
     .name = FF_PLAYER_MODULE_NAME,
-    .description = "Print music player name",
+    .description = "Print the music player name that is currently active",
     .initOptions = (void*) ffInitPlayerOptions,
     .destroyOptions = (void*) ffDestroyPlayerOptions,
     .parseJsonObject = (void*) ffParsePlayerJsonObject,

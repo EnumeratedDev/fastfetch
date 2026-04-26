@@ -85,7 +85,7 @@ void ffGenerateOpenGLJsonConfig(FFOpenGLOptions* options, yyjson_mut_doc* doc, y
     }
 }
 
-bool ffGenerateOpenGLJsonResult(FF_MAYBE_UNUSED FFOpenGLOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateOpenGLJsonResult(FF_A_UNUSED FFOpenGLOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     bool success = false;
     FFOpenGLResult result;
     ffStrbufInit(&result.version);
@@ -128,7 +128,7 @@ void ffDestroyOpenGLOptions(FFOpenGLOptions* options) {
 
 FFModuleBaseInfo ffOpenGLModuleInfo = {
     .name = FF_OPENGL_MODULE_NAME,
-    .description = "Print highest OpenGL version supported by the GPU",
+    .description = "Print the highest OpenGL version supported by the GPU",
     .initOptions = (void*) ffInitOpenGLOptions,
     .destroyOptions = (void*) ffDestroyOpenGLOptions,
     .parseJsonObject = (void*) ffParseOpenGLJsonObject,

@@ -10,7 +10,7 @@ extern "C" {
 #include <mfapi.h>
 #include <mfidl.h>
 
-extern "C" const char* ffDetectCamera(FF_MAYBE_UNUSED FFlist* result) {
+extern "C" const char* ffDetectCamera(FF_A_UNUSED FFlist* result) {
     FF_LIBRARY_LOAD_MESSAGE(mfplat, "mfplat" FF_LIBRARY_EXTENSION, 1)
     FF_LIBRARY_LOAD_SYMBOL_MESSAGE(mfplat, MFCreateAttributes)
     FF_LIBRARY_LOAD_MESSAGE(mf, "mf" FF_LIBRARY_EXTENSION, 1)
@@ -48,7 +48,7 @@ extern "C" const char* ffDetectCamera(FF_MAYBE_UNUSED FFlist* result) {
             continue;
         }
 
-        FFCameraResult* camera = (FFCameraResult*) ffListAdd(result);
+        FFCameraResult* camera = FF_LIST_ADD(FFCameraResult, *result);
         ffStrbufInitNWS(&camera->name, length, buffer);
         ffStrbufInit(&camera->colorspace);
         ffStrbufInit(&camera->vendor);

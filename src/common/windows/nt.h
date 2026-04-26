@@ -63,7 +63,7 @@ typedef struct _PROCESS_DEVICEMAP_INFORMATION_EX {
 } PROCESS_DEVICEMAP_INFORMATION_EX, *PPROCESS_DEVICEMAP_INFORMATION_EX;
 
 #ifndef NtCurrentProcess
-#    define NtCurrentProcess() ((HANDLE) (LONG_PTR) - 1)
+    #define NtCurrentProcess() ((HANDLE) (LONG_PTR) - 1)
 #endif
 
 typedef struct _CURDIR {
@@ -616,9 +616,9 @@ static inline uint64_t ffKSystemTimeToUInt64(const volatile KSYSTEM_TIME* pTime)
     uint32_t low, high1, high2;
 
     do {
-        high1 = pTime->High1Time;
-        low = pTime->LowPart;
-        high2 = pTime->High2Time;
+        high1 = (uint32_t) pTime->High1Time;
+        low = (uint32_t) pTime->LowPart;
+        high2 = (uint32_t) pTime->High2Time;
     } while (high1 != high2);
 
     return ((uint64_t) high1 << 32) | low;

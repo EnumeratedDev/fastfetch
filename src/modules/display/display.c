@@ -24,7 +24,7 @@ bool ffPrintDisplay(FFDisplayOptions* options) {
     }
 
     if (options->order != FF_DISPLAY_ORDER_NONE) {
-        ffListSort((FFlist*) &dsResult->displays, (void*) (options->order == FF_DISPLAY_ORDER_ASC ? sortByNameAsc : sortByNameDesc));
+        ffListSort((FFlist*) &dsResult->displays, sizeof(FFDisplayResult), (void*) (options->order == FF_DISPLAY_ORDER_ASC ? sortByNameAsc : sortByNameDesc));
     }
 
     if (options->compactType != FF_DISPLAY_COMPACT_TYPE_NONE) {
@@ -302,7 +302,7 @@ void ffGenerateDisplayJsonConfig(FFDisplayOptions* options, yyjson_mut_doc* doc,
     }
 }
 
-bool ffGenerateDisplayJsonResult(FF_MAYBE_UNUSED FFDisplayOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateDisplayJsonResult(FF_A_UNUSED FFDisplayOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     const FFDisplayServerResult* dsResult = ffConnectDisplayServer();
 
     if (dsResult->displays.length == 0) {

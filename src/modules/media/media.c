@@ -143,7 +143,7 @@ void ffGenerateMediaJsonConfig(FFMediaOptions* options, yyjson_mut_doc* doc, yyj
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 }
 
-bool ffGenerateMediaJsonResult(FF_MAYBE_UNUSED FFMediaOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateMediaJsonResult(FF_A_UNUSED FFMediaOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     const FFMediaResult* media = ffDetectMedia(false);
 
     if (media->error.length > 0) {
@@ -182,7 +182,7 @@ void ffDestroyMediaOptions(FFMediaOptions* options) {
 
 FFModuleBaseInfo ffMediaModuleInfo = {
     .name = FF_MEDIA_MODULE_NAME,
-    .description = "Print playing song name",
+    .description = "Print the name of the currently playing song",
     .initOptions = (void*) ffInitMediaOptions,
     .destroyOptions = (void*) ffDestroyMediaOptions,
     .parseJsonObject = (void*) ffParseMediaJsonObject,

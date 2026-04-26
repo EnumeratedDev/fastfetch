@@ -54,7 +54,7 @@ void ffGenerateWallpaperJsonConfig(FFWallpaperOptions* options, yyjson_mut_doc* 
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 }
 
-bool ffGenerateWallpaperJsonResult(FF_MAYBE_UNUSED FFWallpaperOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateWallpaperJsonResult(FF_A_UNUSED FFWallpaperOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     FF_STRBUF_AUTO_DESTROY fullpath = ffStrbufCreate();
     const char* error = ffDetectWallpaper(&fullpath);
     if (error) {
@@ -76,7 +76,7 @@ void ffDestroyWallpaperOptions(FFWallpaperOptions* options) {
 
 FFModuleBaseInfo ffWallpaperModuleInfo = {
     .name = FF_WALLPAPER_MODULE_NAME,
-    .description = "Print image file path of current wallpaper",
+    .description = "Print the file path of the current wallpaper",
     .initOptions = (void*) ffInitWallpaperOptions,
     .destroyOptions = (void*) ffDestroyWallpaperOptions,
     .parseJsonObject = (void*) ffParseWallpaperJsonObject,

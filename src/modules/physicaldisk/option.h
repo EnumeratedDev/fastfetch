@@ -2,7 +2,7 @@
 
 #include "common/option.h"
 
-typedef enum __attribute__((__packed__)) FFPhysicalDiskType {
+typedef enum FF_A_PACKED FFPhysicalDiskType {
     FF_PHYSICALDISK_TYPE_NONE = 0,
 
     // If none is set, it's unknown
@@ -16,7 +16,7 @@ typedef enum __attribute__((__packed__)) FFPhysicalDiskType {
     FF_PHYSICALDISK_TYPE_READWRITE = 1 << 5,
     FF_PHYSICALDISK_TYPE_READONLY = 1 << 6,
 
-    FF_PHYSICALDISK_TYPE_UNKNOWN = 1 << 7,
+    FF_PHYSICALDISK_TYPE_UNUSED = 1 << 7,
 
     FF_PHYSICALDISK_TYPE_FORCE_UNSIGNED = UINT8_MAX,
 } FFPhysicalDiskType;
@@ -26,6 +26,7 @@ typedef struct FFPhysicalDiskOptions {
     FFModuleArgs moduleArgs;
 
     FFstrbuf namePrefix;
+    FFPhysicalDiskType hideType;
     bool temp;
     FFColorRangeConfig tempConfig;
 } FFPhysicalDiskOptions;

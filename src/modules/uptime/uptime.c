@@ -58,7 +58,7 @@ void ffGenerateUptimeJsonConfig(FFUptimeOptions* options, yyjson_mut_doc* doc, y
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 }
 
-bool ffGenerateUptimeJsonResult(FF_MAYBE_UNUSED FFUptimeOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateUptimeJsonResult(FF_A_UNUSED FFUptimeOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     FFUptimeResult result;
     const char* error = ffDetectUptime(&result);
 
@@ -84,7 +84,7 @@ void ffDestroyUptimeOptions(FFUptimeOptions* options) {
 
 FFModuleBaseInfo ffUptimeModuleInfo = {
     .name = FF_UPTIME_MODULE_NAME,
-    .description = "Print how long system has been running",
+    .description = "Print how long the system has been running",
     .initOptions = (void*) ffInitUptimeOptions,
     .destroyOptions = (void*) ffDestroyUptimeOptions,
     .parseJsonObject = (void*) ffParseUptimeJsonObject,

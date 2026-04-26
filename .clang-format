@@ -1,3 +1,5 @@
+# find . -type f \( -name "*.c" -o -name "*.h" -o -name "*.cpp" -o -name "*.hpp" \) ! -path "src/3rdparty/*" -print0 | xargs -0 clang-format -i
+
 BasedOnStyle: LLVM
 Language: Cpp
 
@@ -42,7 +44,7 @@ SpacesInLineCommentPrefix:
 SpacesInContainerLiterals: true
 
 SortIncludes: Never
-IndentPPDirectives: AfterHash
+IndentPPDirectives: BeforeHash
 PPIndentWidth: 4
 
 IndentCaseLabels: true
@@ -63,6 +65,19 @@ ForEachMacros:
   - yyjson_arr_foreach
   - yyjson_mut_obj_foreach
   - yyjson_mut_arr_foreach
+
+AttributeMacros:
+  - FF_A_FALLTHROUGH
+  - FF_A_DEPRECATED
+  - FF_A_CLEANUP
+  - FF_A_NODISCARD
+  - FF_A_PRINTF
+  - FF_A_SCANF
+  - FF_A_NONNULL
+  - FF_A_RETURNS_NONNULL
+  - FF_A_UNUSED
+  - FF_A_PACKED
+  - FF_A_WEAK_IMPORT
 
 MaxEmptyLinesToKeep: 1
 KeepEmptyLinesAtTheStartOfBlocks: false

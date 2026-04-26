@@ -36,9 +36,9 @@ static const char* getSshdVersion(FFstrbuf* version) {
 }
 
 #ifdef FF_HAVE_ZLIB
-#    include "common/library.h"
-#    include <stdlib.h>
-#    include <zlib.h>
+    #include "common/library.h"
+    #include <stdlib.h>
+    #include <zlib.h>
 
 static const char* getSddmVersion(FFstrbuf* version) {
     FF_LIBRARY_LOAD_MESSAGE(zlib, "libz" FF_LIBRARY_EXTENSION, 2)
@@ -81,7 +81,7 @@ static const char* getSddmVersion(FFstrbuf* version) {
     return NULL;
 }
 #else
-static const char* getSddmVersion(FF_MAYBE_UNUSED FFstrbuf* version) {
+static const char* getSddmVersion(FF_A_UNUSED FFstrbuf* version) {
     return "Fastfetch is built without libz support";
 }
 #endif

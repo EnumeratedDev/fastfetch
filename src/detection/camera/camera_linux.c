@@ -6,10 +6,10 @@
 #include <sys/ioctl.h>
 
 #if FF_HAVE_LINUX_VIDEODEV2
-#    include <linux/videodev2.h>
+    #include <linux/videodev2.h>
 #elif __has_include(<sys/videoio.h>) // OpenBSD
-#    include <sys/videoio.h>
-#    define FF_HAVE_LINUX_VIDEODEV2 1
+    #include <sys/videoio.h>
+    #define FF_HAVE_LINUX_VIDEODEV2 1
 #endif
 
 const char* ffDetectCamera(FFlist* result) {
@@ -39,7 +39,7 @@ const char* ffDetectCamera(FFlist* result) {
             continue;
         }
 
-        FFCameraResult* camera = (FFCameraResult*) ffListAdd(result);
+        FFCameraResult* camera = FF_LIST_ADD(FFCameraResult, *result);
         ffStrbufInitS(&camera->name, (const char*) cap.card);
         ffStrbufInit(&camera->vendor);
         ffStrbufInitS(&camera->id, (const char*) cap.bus_info);

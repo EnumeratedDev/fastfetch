@@ -3,14 +3,15 @@
 #include <stdint.h>
 #include <limits.h>
 #include <assert.h>
+#include <stdalign.h>
 
 #if _WIN32
-#    include <ntdef.h>
-#    include <windef.h>
+    #include <ntdef.h>
+    #include <windef.h>
 #else
-#    include <sys/ioctl.h>
-#    include <uchar.h>
-#    include <errno.h>
+    #include <sys/ioctl.h>
+    #include <uchar.h>
+    #include <errno.h>
 
 typedef struct _LUID {
     uint32_t LowPart;
@@ -39,11 +40,11 @@ typedef union {
     int64_t QuadPart;
 } LARGE_INTEGER;
 typedef int32_t NTSTATUS; // 0 for success, -1 for failure
-#    define NT_SUCCESS(Status) ((NTSTATUS) (Status) >= 0)
-#    define _In_range_(low, hi)
+    #define NT_SUCCESS(Status) ((NTSTATUS) (Status) >= 0)
+    #define _In_range_(low, hi)
 #endif
 
-#define D3DKMT_ALIGN64 __attribute__((aligned(8)))
+#define D3DKMT_ALIGN64 alignas(8)
 
 typedef struct D3DKMT_HANDLE {
     union {
@@ -187,11 +188,9 @@ typedef enum _KMTQUERYADAPTERINFOTYPE {
     KMTQAITYPE_NODEMETADATA = 25, // WDDM 2.0, Windows 10
     KMTQAITYPE_PHYSICALADAPTERDEVICEIDS = 31,
     KMTQAITYPE_QUERY_ADAPTER_UNIQUE_GUID = 60, // WDDM 2.4, Windows 10 (1803)
-
     KMTQAITYPE_NODEPERFDATA = 61,
     KMTQAITYPE_ADAPTERPERFDATA = 62,
 } KMTQUERYADAPTERINFOTYPE;
-// `KMTQAITYPE_QUERY_ADAPTER_UNIQUE_GUID` reports the GUID string used by the adapter's registry key (DirectX and Video)
 
 typedef struct _D3DKMT_QUERYADAPTERINFO {
     D3DKMT_HANDLE hAdapter;
@@ -310,12 +309,12 @@ typedef struct _DXGK_NODEMETADATA {
     DXGK_NODEMETADATA_FLAGS Flags; // WDDM 2.2
     BOOLEAN GpuMmuSupported;       // WDDM 2.0 ???
     BOOLEAN IoMmuSupported;
-} __attribute__((packed)) DXGK_NODEMETADATA;
+} FF_A_PACKED DXGK_NODEMETADATA;
 
 typedef struct _D3DKMT_NODEMETADATA {
     UINT NodeOrdinalAndAdapterIndex; // WDDMv2: High word is physical adapter index, low word is node ordinal
     DXGK_NODEMETADATA NodeData;
-} __attribute__((packed)) D3DKMT_NODEMETADATA;
+} FF_A_PACKED D3DKMT_NODEMETADATA;
 static_assert(sizeof(D3DKMT_NODEMETADATA) == 0x4E, "D3DKMT_NODEMETADATA structure size mismatch");
 
 // Functions
@@ -331,12 +330,12 @@ EXTERN_C _Check_return_ NTSTATUS APIENTRY D3DKMTQueryStatistics(_In_ CONST D3DKM
 
 #else
 
-// Ref: https://github.com/microsoft/WSL2-Linux-Kernel/blob/linux-msft-wsl-6.6.y/include/uapi/misc/d3dkmthk.h
-#    define LX_DXOPENADAPTERFROMLUID _IOWR(0x47, 0x01, D3DKMT_OPENADAPTERFROMLUID)
-#    define LX_DXQUERYADAPTERINFO _IOWR(0x47, 0x09, D3DKMT_QUERYADAPTERINFO)
-#    define LX_DXENUMADAPTERS2 _IOWR(0x47, 0x14, D3DKMT_ENUMADAPTERS2)
-#    define LX_DXCLOSEADAPTER _IOWR(0x47, 0x15, D3DKMT_CLOSEADAPTER)
-#    define LX_DXQUERYSTATISTICS _IOWR(0x47, 0x43, D3DKMT_QUERYSTATISTICS)
+    // Ref: https://github.com/microsoft/WSL2-Linux-Kernel/blob/linux-msft-wsl-6.6.y/include/uapi/misc/d3dkmthk.h
+    #define LX_DXOPENADAPTERFROMLUID _IOWR(0x47, 0x01, D3DKMT_OPENADAPTERFROMLUID)
+    #define LX_DXQUERYADAPTERINFO _IOWR(0x47, 0x09, D3DKMT_QUERYADAPTERINFO)
+    #define LX_DXENUMADAPTERS2 _IOWR(0x47, 0x14, D3DKMT_ENUMADAPTERS2)
+    #define LX_DXCLOSEADAPTER _IOWR(0x47, 0x15, D3DKMT_CLOSEADAPTER)
+    #define LX_DXQUERYSTATISTICS _IOWR(0x47, 0x43, D3DKMT_QUERYSTATISTICS)
 
 extern int dxgfd; // File descriptor for /dev/dxg, initialized in gpu_wsl.c
 

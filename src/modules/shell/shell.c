@@ -54,7 +54,7 @@ void ffGenerateShellJsonConfig(FFShellOptions* options, yyjson_mut_doc* doc, yyj
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 }
 
-bool ffGenerateShellJsonResult(FF_MAYBE_UNUSED FFShellOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateShellJsonResult(FF_A_UNUSED FFShellOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     const FFShellResult* result = ffDetectShell();
 
     if (result->processName.length == 0) {
@@ -90,7 +90,7 @@ void ffDestroyShellOptions(FFShellOptions* options) {
 
 FFModuleBaseInfo ffShellModuleInfo = {
     .name = FF_SHELL_MODULE_NAME,
-    .description = "Print current shell name and version",
+    .description = "Print the current shell name and version",
     .initOptions = (void*) ffInitShellOptions,
     .destroyOptions = (void*) ffDestroyShellOptions,
     .parseJsonObject = (void*) ffParseShellJsonObject,

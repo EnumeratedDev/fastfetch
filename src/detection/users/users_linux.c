@@ -6,17 +6,17 @@
 #include <unistd.h>
 
 #if FF_HAVE_UTMPX
-#    include <utmpx.h>
+    #include <utmpx.h>
 #else
-// for Android compatibility
-#    include <utmp.h>
-#    define utmpx utmp
-#    define setutxent setutent
-#    define getutxent getutent
+    // for Android compatibility
+    #include <utmp.h>
+    #define utmpx utmp
+    #define setutxent setutent
+    #define getutxent getutent
 #endif
 #if __linux__ || __GNU__
-#    include <netinet/in.h>
-#    include <arpa/inet.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
 #endif
 
 #if __linux__
@@ -143,7 +143,7 @@ static void fillUtmpIpAddr(FFUserResult* user, struct utmpx* n) {
     }
 }
 #else
-static void fillUtmpIpAddr(FF_MAYBE_UNUSED FFUserResult* user, FF_MAYBE_UNUSED struct utmpx* n) {
+static void fillUtmpIpAddr(FF_A_UNUSED FFUserResult* user, FF_A_UNUSED struct utmpx* n) {
 }
 #endif
 

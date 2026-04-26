@@ -38,7 +38,24 @@ static void parsePhysicalDisk(int dfd, const char* devName, FFPhysicalDiskOption
         }
     }
 
+    FFPhysicalDiskType type = FF_PHYSICALDISK_TYPE_NONE;
+    if (size == 0) {
+        if (options->hideType & FF_PHYSICALDISK_TYPE_UNUSED) {
+            return;
+        }
+
+        type |= FF_PHYSICALDISK_TYPE_UNUSED;
+    }
+
     int devfd = openat(dfd, "device", O_RDONLY | O_CLOEXEC | O_PATH | O_DIRECTORY);
+
+    if (devfd < 0) {
+        if (options->hideType & FF_PHYSICALDISK_TYPE_VIRTUAL) {
+            return;
+        }
+
+        type |= FF_PHYSICALDISK_TYPE_VIRTUAL;
+    }
 
     FF_STRBUF_AUTO_DESTROY name = ffStrbufCreate();
 
@@ -80,14 +97,13 @@ static void parsePhysicalDisk(int dfd, const char* devName, FFPhysicalDiskOption
         ffStrbufSetS(&name, devName);
     }
 
-    FFPhysicalDiskResult* device = (FFPhysicalDiskResult*) ffListAdd(result);
+    FFPhysicalDiskResult* device = FF_LIST_ADD(FFPhysicalDiskResult, *result);
     ffStrbufInitMove(&device->name, &name);
     ffStrbufInitF(&device->devPath, "/dev/%s", devName);
     ffStrbufInit(&device->serial);
     ffStrbufInit(&device->revision);
     ffStrbufInit(&device->interconnect);
-    device->type = (devfd > 0 ? FF_PHYSICALDISK_TYPE_NONE : FF_PHYSICALDISK_TYPE_VIRTUAL) |
-        (size > 0 ? FF_PHYSICALDISK_TYPE_NONE : FF_PHYSICALDISK_TYPE_UNKNOWN);
+    device->type = type;
     device->size = size;
     device->temperature = FF_PHYSICALDISK_TEMP_UNSET;
 

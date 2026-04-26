@@ -37,7 +37,7 @@ static bool parseOsRelease(const char* fileName, FFOSResult* result) {
 }
 
 // Common logic for detecting Armbian image version
-FF_MAYBE_UNUSED static bool detectArmbianVersion(FFOSResult* result) {
+FF_A_UNUSED static bool detectArmbianVersion(FFOSResult* result) {
     // Possible values `PRETTY_NAME` starts with on Armbian:
     // - `Armbian` for official releases
     // - `Armbian_community` for community releases
@@ -58,7 +58,7 @@ FF_MAYBE_UNUSED static bool detectArmbianVersion(FFOSResult* result) {
 }
 
 // Returns false if PrettyName should be updated by caller
-FF_MAYBE_UNUSED static bool getUbuntuFlavour(FFOSResult* result) {
+FF_A_UNUSED static bool getUbuntuFlavour(FFOSResult* result) {
     if (detectArmbianVersion(result)) {
         return true;
     } else if (ffStrbufStartsWithS(&result->prettyName, "Linux Lite ")) {
@@ -165,7 +165,7 @@ FF_MAYBE_UNUSED static bool getUbuntuFlavour(FFOSResult* result) {
     return false;
 }
 
-FF_MAYBE_UNUSED static void getDebianVersion(FFOSResult* result) {
+FF_A_UNUSED static void getDebianVersion(FFOSResult* result) {
     FF_STRBUF_AUTO_DESTROY debianVersion = ffStrbufCreate();
     ffAppendFileBuffer("/etc/debian_version", &debianVersion);
     ffStrbufTrimRightSpace(&debianVersion);
@@ -178,7 +178,7 @@ FF_MAYBE_UNUSED static void getDebianVersion(FFOSResult* result) {
     ffStrbufSetF(&result->prettyName, "%s %s (%s)", result->name.chars, result->versionID.chars, result->codename.chars);
 }
 
-FF_MAYBE_UNUSED static bool detectDebianDerived(FFOSResult* result) {
+FF_A_UNUSED static bool detectDebianDerived(FFOSResult* result) {
     if (detectArmbianVersion(result)) {
         return true;
     } else if (ffStrbufStartsWithS(&result->name, "Loc-OS")) {
@@ -272,7 +272,7 @@ FF_MAYBE_UNUSED static bool detectDebianDerived(FFOSResult* result) {
     return false;
 }
 
-FF_MAYBE_UNUSED static bool detectFedoraVariant(FFOSResult* result) {
+FF_A_UNUSED static bool detectFedoraVariant(FFOSResult* result) {
     if (ffStrbufEqualS(&result->variantID, "coreos") || ffStrbufEqualS(&result->variantID, "kinoite") || ffStrbufEqualS(&result->variantID, "sericea") || ffStrbufEqualS(&result->variantID, "silverblue")) {
         ffStrbufAppendC(&result->id, '-');
         ffStrbufAppend(&result->id, &result->variantID);
@@ -293,9 +293,9 @@ static bool detectBedrock(FFOSResult* os) {
 static void detectOS(FFOSResult* os) {
 #ifdef FF_CUSTOM_OS_RELEASE_PATH
     parseOsRelease(FF_STR(FF_CUSTOM_OS_RELEASE_PATH), os);
-#    ifdef FF_CUSTOM_LSB_RELEASE_PATH
+    #ifdef FF_CUSTOM_LSB_RELEASE_PATH
     parseLsbRelease(FF_STR(FF_CUSTOM_LSB_RELEASE_PATH), os);
-#    endif
+    #endif
     return;
 #endif
 

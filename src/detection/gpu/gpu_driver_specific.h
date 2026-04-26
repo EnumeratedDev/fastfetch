@@ -2,7 +2,7 @@
 
 #include "gpu.h"
 
-typedef enum __attribute__((__packed__)) FFGpuDriverConditionType {
+typedef enum FF_A_PACKED FFGpuDriverConditionType {
     FF_GPU_DRIVER_CONDITION_TYPE_BUS_ID = 1 << 0,
     FF_GPU_DRIVER_CONDITION_TYPE_DEVICE_ID = 1 << 1,
     FF_GPU_DRIVER_CONDITION_TYPE_LUID = 1 << 2,
@@ -44,10 +44,10 @@ const char* ffDetectAmdGpuInfo(const FFGpuDriverCondition* cond, FFGpuDriverResu
 const char* ffDetectMthreadsGpuInfo(const FFGpuDriverCondition* cond, FFGpuDriverResult result, const char* soName);
 
 #ifndef FF_GPU_DRIVER_DLLNAME_PATH_PREFIX
-#    define FF_GPU_DRIVER_DLLNAME_PATH_PREFIX
+    #define FF_GPU_DRIVER_DLLNAME_PATH_PREFIX
 #endif
 
-FF_MAYBE_UNUSED static inline bool getDriverSpecificDetectionFn(const char* vendor, __typeof__(&ffDetectNvidiaGpuInfo)* pDetectFn, const char** pDllName) {
+FF_A_UNUSED static inline bool getDriverSpecificDetectionFn(const char* vendor, __typeof__(&ffDetectNvidiaGpuInfo)* pDetectFn, const char** pDllName) {
     if (vendor == FF_GPU_VENDOR_NAME_NVIDIA) {
         *pDetectFn = ffDetectNvidiaGpuInfo;
 #ifdef _WIN32
@@ -66,18 +66,18 @@ FF_MAYBE_UNUSED static inline bool getDriverSpecificDetectionFn(const char* vend
 #ifdef _WIN32
     else if (vendor == FF_GPU_VENDOR_NAME_INTEL) {
         *pDetectFn = ffDetectIntelGpuInfo;
-#    ifdef _WIN64
+    #ifdef _WIN64
         *pDllName = FF_GPU_DRIVER_DLLNAME_PATH_PREFIX "ControlLib.dll";
-#    else
+    #else
         *pDllName = FF_GPU_DRIVER_DLLNAME_PATH_PREFIX "ControlLib32.dll";
-#    endif
+    #endif
     } else if (vendor == FF_GPU_VENDOR_NAME_AMD) {
         *pDetectFn = ffDetectAmdGpuInfo;
-#    ifdef _WIN64
+    #ifdef _WIN64
         *pDllName = FF_GPU_DRIVER_DLLNAME_PATH_PREFIX "atiadlxx.dll";
-#    else
+    #else
         *pDllName = FF_GPU_DRIVER_DLLNAME_PATH_PREFIX "atiadlxy.dll";
-#    endif
+    #endif
     }
 #endif
     else {

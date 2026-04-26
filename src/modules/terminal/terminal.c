@@ -52,7 +52,7 @@ void ffGenerateTerminalJsonConfig(FFTerminalOptions* options, yyjson_mut_doc* do
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 }
 
-bool ffGenerateTerminalJsonResult(FF_MAYBE_UNUSED FFTerminalOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateTerminalJsonResult(FF_A_UNUSED FFTerminalOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     const FFTerminalResult* result = ffDetectTerminal();
 
     if (result->processName.length == 0) {
@@ -84,7 +84,7 @@ void ffDestroyTerminalOptions(FFTerminalOptions* options) {
 
 FFModuleBaseInfo ffTerminalModuleInfo = {
     .name = FF_TERMINAL_MODULE_NAME,
-    .description = "Print current terminal name and version",
+    .description = "Print the current terminal name and version",
     .initOptions = (void*) ffInitTerminalOptions,
     .destroyOptions = (void*) ffDestroyTerminalOptions,
     .parseJsonObject = (void*) ffParseTerminalJsonObject,

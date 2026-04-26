@@ -92,7 +92,7 @@ void ffGenerateMemoryJsonConfig(FFMemoryOptions* options, yyjson_mut_doc* doc, y
     ffPercentGenerateJsonConfig(doc, module, options->percent);
 }
 
-bool ffGenerateMemoryJsonResult(FF_MAYBE_UNUSED FFMemoryOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
+bool ffGenerateMemoryJsonResult(FF_A_UNUSED FFMemoryOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     FFMemoryResult storage = {};
     const char* error = ffDetectMemory(&storage);
 
@@ -119,7 +119,7 @@ void ffDestroyMemoryOptions(FFMemoryOptions* options) {
 
 FFModuleBaseInfo ffMemoryModuleInfo = {
     .name = FF_MEMORY_MODULE_NAME,
-    .description = "Print system memory usage info",
+    .description = "Print system memory usage information",
     .initOptions = (void*) ffInitMemoryOptions,
     .destroyOptions = (void*) ffDestroyMemoryOptions,
     .parseJsonObject = (void*) ffParseMemoryJsonObject,

@@ -2,8 +2,8 @@
 #include "common/stringUtils.h"
 
 #ifdef FF_HAVE_DBUS
-#    include "common/dbus.h"
-#    include "common/io.h"
+    #include "common/dbus.h"
+    #include "common/io.h"
 
 /* Example dbus reply:
 array [
@@ -126,7 +126,7 @@ static const char* detectBluetooth(FFlist* devices) {
             continue;
         }
 
-        FFBluetoothRadioResult* device = ffListAdd(devices);
+        FFBluetoothRadioResult* device = FF_LIST_ADD(FFBluetoothRadioResult, *devices);
         ffStrbufInit(&device->name);
         ffStrbufInit(&device->address);
         ffStrbufInitStatic(&device->vendor, "Unknown");
