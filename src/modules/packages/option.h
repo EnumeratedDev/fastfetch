@@ -38,7 +38,8 @@ typedef enum FF_A_PACKED FFPackagesFlags {
     FF_PACKAGES_FLAG_KISS_BIT = 1ULL << 31,
     FF_PACKAGES_FLAG_MOSS_BIT = 1ULL << 32,
     FF_PACKAGES_FLAG_APPIMAGE_BIT = 1ULL << 33,
-    FF_PACKAGES_FLAG_BPM_BIT = 1ULL << 34,
+    FF_PACKAGES_FLAG_CARDS_BIT = 1ULL << 34,
+    FF_PACKAGES_FLAG_BPM_BIT = 1ULL << 35,
     FF_PACKAGES_FLAG_FORCE_UNSIGNED = UINT64_MAX,
 } FFPackagesFlags;
 static_assert(sizeof(FFPackagesFlags) == sizeof(uint64_t), "");
