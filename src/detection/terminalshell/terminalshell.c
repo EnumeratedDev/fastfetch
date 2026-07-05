@@ -19,6 +19,7 @@
     #define _PATH_LOCALBASE "/usr/pkg"
 #elif _WIN32
 
+    #include "common/windows/registry.h"
     #include "common/windows/version.h"
     #include <windows.h>
 
@@ -248,6 +249,12 @@ static bool getShellVersionWinPowerShell(FFstrbuf* exe, FFstrbuf* version) {
         return true;
     }
 
+    FF_AUTO_CLOSE_FD HANDLE hKey = NULL;
+    if (ffRegOpenSubkeyForRead(ffRegGetRootKeyHandle(HKEY_LOCAL_MACHINE), L"SOFTWARE\\Microsoft\\PowerShell\\3\\PowerShellEngine", &hKey, NULL) && ffRegReadStrbuf(hKey, L"PowerShellVersion", version, NULL)) {
+        return true;
+    }
+
+    // Extremely slow
     return ffProcessAppendStdOut(version, (char* const[]) { exe->chars, "-NoLogo", "-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()", NULL }) == NULL;
 }
 #endif
@@ -500,6 +507,36 @@ FF_A_UNUSED static bool getTerminalVersionWeston(FF_A_UNUSED FFstrbuf* exe, FFst
     // weston 8.0.0
     ffStrbufSubstrAfterFirstC(version, ' ');
 
+    return version->length > 0;
+}
+
+FF_A_UNUSED static bool extractKmsconVersion(const char* str, FF_A_UNUSED uint32_t len, void* userdata) {
+    if (!ffStrStartsWith(str, "v")) {
+        return true;
+    }
+    int count = 0;
+    sscanf(str, "v%*d.%*d.%*d%n", &count);
+    if (count == 0) {
+        return true;
+    }
+    ffStrbufSetNS((FFstrbuf*) userdata, (uint32_t) count - 1, str + 1);
+    return false;
+}
+
+FF_A_UNUSED static bool getTerminalVersionKmscon(FFstrbuf* exe, FFstrbuf* version) {
+    if (ffIsAbsolutePath(exe->chars)) {
+        ffBinaryExtractStrings(exe->chars, extractKmsconVersion, version, (uint32_t) strlen("v0.0.0"));
+        if (version->length) {
+            return true;
+        }
+    }
+
+    if (!getExeVersionRaw(exe, version)) {
+        return false;
+    }
+
+    // kmscon version v10.0.0
+    ffStrbufSubstrAfterLastC(version, ' ');
     return version->length > 0;
 }
 
@@ -836,6 +873,14 @@ bool fftsGetTerminalVersion(FFstrbuf* processName, FF_A_UNUSED FFstrbuf* exe, FF
 
     if (ffStrbufIgnCaseEqualS(processName, "cosmic-term")) {
         return getTerminalVersionTmux(exe, version);
+    }
+
+#endif
+
+#ifdef __linux__
+
+    if (ffStrbufIgnCaseEqualS(processName, "kmscon")) {
+        return getTerminalVersionKmscon(exe, version);
     }
 
 #endif
