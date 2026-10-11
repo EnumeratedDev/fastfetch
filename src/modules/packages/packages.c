@@ -64,6 +64,7 @@ bool ffPrintPackages(FFPackagesOptions* options) {
         }
         FF_PRINT_PACKAGE(cards)
         FF_PRINT_PACKAGE(choco)
+        FF_PRINT_PACKAGE(crux)
         FF_PRINT_PACKAGE(dpkg)
         FF_PRINT_PACKAGE(emerge)
         FF_PRINT_PACKAGE(eopkg)
@@ -123,6 +124,7 @@ bool ffPrintPackages(FFPackagesOptions* options) {
         FF_PRINT_PACKAGE(pkgtool)
         FF_PRINT_PACKAGE(porg)
         FF_PRINT_PACKAGE(rpm)
+        FF_PRINT_PACKAGE(rum)
         if (options->combined) {
             FF_PRINT_PACKAGE_ALL(scoop);
         } else if (counts.scoopGlobal > 0) {
@@ -156,6 +158,7 @@ bool ffPrintPackages(FFPackagesOptions* options) {
                 FF_ARG(counts.brewCask, "brew-cask"),
                 FF_ARG(counts.cards, "cards"),
                 FF_ARG(counts.choco, "choco"),
+                FF_ARG(counts.crux, "crux"),
                 FF_ARG(counts.dpkg, "dpkg"),
                 FF_ARG(counts.emerge, "emerge"),
                 FF_ARG(counts.eopkg, "eopkg"),
@@ -188,6 +191,7 @@ bool ffPrintPackages(FFPackagesOptions* options) {
                 FF_ARG(counts.pkgtool, "pkgtool"),
                 FF_ARG(counts.porg, "porg"),
                 FF_ARG(counts.rpm, "rpm"),
+                FF_ARG(counts.rum, "rum"),
                 FF_ARG(counts.scoopGlobal, "scoop-global"),
                 FF_ARG(counts.scoopUser, "scoop-user"),
                 FF_ARG(counts.snap, "snap"),
@@ -260,6 +264,7 @@ void ffParsePackagesJsonObject(FFPackagesOptions* options, yyjson_val* module) {
                                 ;
                             FF_TEST_PACKAGE_NAME(CARDS)
                             FF_TEST_PACKAGE_NAME(CHOCO)
+                            FF_TEST_PACKAGE_NAME(CRUX)
                             break;
                         case 'D':
                             if (false)
@@ -337,6 +342,7 @@ void ffParsePackagesJsonObject(FFPackagesOptions* options, yyjson_val* module) {
                             if (false)
                                 ;
                             FF_TEST_PACKAGE_NAME(RPM)
+                            FF_TEST_PACKAGE_NAME(RUM)
                             break;
                         case 'S':
                             if (false)
@@ -373,6 +379,7 @@ void ffParsePackagesJsonObject(FFPackagesOptions* options, yyjson_val* module) {
     }
 }
 
+[[gnu::cold]]
 void ffGeneratePackagesJsonConfig(FFPackagesOptions* options, yyjson_mut_doc* doc, yyjson_mut_val* module) {
     ffJsonConfigGenerateModuleArgsConfig(doc, module, &options->moduleArgs);
 
@@ -394,6 +401,7 @@ void ffGeneratePackagesJsonConfig(FFPackagesOptions* options, yyjson_mut_doc* do
     FF_TEST_PACKAGE_NAME(BREW)
     FF_TEST_PACKAGE_NAME(CARDS)
     FF_TEST_PACKAGE_NAME(CHOCO)
+    FF_TEST_PACKAGE_NAME(CRUX)
     FF_TEST_PACKAGE_NAME(DPKG)
     FF_TEST_PACKAGE_NAME(EMERGE)
     FF_TEST_PACKAGE_NAME(EOPKG)
@@ -418,6 +426,7 @@ void ffGeneratePackagesJsonConfig(FFPackagesOptions* options, yyjson_mut_doc* do
     FF_TEST_PACKAGE_NAME(PKGTOOL)
     FF_TEST_PACKAGE_NAME(PORG)
     FF_TEST_PACKAGE_NAME(RPM)
+    FF_TEST_PACKAGE_NAME(RUM)
     FF_TEST_PACKAGE_NAME(SCOOP)
     FF_TEST_PACKAGE_NAME(SNAP)
     FF_TEST_PACKAGE_NAME(SOAR)
@@ -456,6 +465,7 @@ bool ffGeneratePackagesJsonResult(FFPackagesOptions* options, yyjson_mut_doc* do
     FF_APPEND_PACKAGE_COUNT(brewCask)
     FF_APPEND_PACKAGE_COUNT(cards)
     FF_APPEND_PACKAGE_COUNT(choco)
+    FF_APPEND_PACKAGE_COUNT(crux)
     FF_APPEND_PACKAGE_COUNT(dpkg)
     FF_APPEND_PACKAGE_COUNT(emerge)
     FF_APPEND_PACKAGE_COUNT(eopkg)
@@ -487,6 +497,7 @@ bool ffGeneratePackagesJsonResult(FFPackagesOptions* options, yyjson_mut_doc* do
     FF_APPEND_PACKAGE_COUNT(pkgtool)
     FF_APPEND_PACKAGE_COUNT(porg)
     FF_APPEND_PACKAGE_COUNT(rpm)
+    FF_APPEND_PACKAGE_COUNT(rum)
     FF_APPEND_PACKAGE_COUNT(scoopGlobal)
     FF_APPEND_PACKAGE_COUNT(scoopUser)
     FF_APPEND_PACKAGE_COUNT(snap)
@@ -523,6 +534,7 @@ FFModuleBaseInfo ffPackagesModuleInfo = {
         .cs = "Balíčky",
         .de = "Pakete",
         .es = "Paquetes",
+        .fi = "Ohjelmistopaketit",
         .fr = "Paquets",
         .gl = "Paquetes",
         .he = "חבילות",
@@ -555,6 +567,7 @@ FFModuleBaseInfo ffPackagesModuleInfo = {
         { "Number of brew-cask packages", "brew-cask" },
         { "Number of cards packages", "cards" },
         { "Number of choco packages", "choco" },
+        { "Number of crux packages", "crux" },
         { "Number of dpkg packages", "dpkg" },
         { "Number of emerge packages", "emerge" },
         { "Number of eopkg packages", "eopkg" },
@@ -587,6 +600,7 @@ FFModuleBaseInfo ffPackagesModuleInfo = {
         { "Number of pkgtool packages", "pkgtool" },
         { "Number of porg packages", "porg" },
         { "Number of rpm packages", "rpm" },
+        { "Number of rum overlay packages", "rum" },
         { "Number of scoop-global packages", "scoop-global" },
         { "Number of scoop-user packages", "scoop-user" },
         { "Number of snap packages", "snap" },
